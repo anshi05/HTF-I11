@@ -28,10 +28,10 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen w-full">
       <AppSidebar />
       <SidebarInset>
-        <main className="flex flex-col md:flex-row w-full p-4 gap-4">
+        <main className="flex flex-col lg:flex-row w-full p-4 gap-4">
           <motion.div
             className="flex-1 flex flex-col gap-4"
             initial={{ opacity: 0, y: 20 }}
