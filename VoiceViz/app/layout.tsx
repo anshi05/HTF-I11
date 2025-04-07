@@ -21,7 +21,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "VoiceViz - Voice to Visualization",
+  title: "VoiceViz ",
   description: "Transform your voice queries into powerful data visualizations",
   generator: "v0.dev",
   icons: {

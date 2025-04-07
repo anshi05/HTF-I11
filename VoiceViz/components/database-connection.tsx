@@ -117,7 +117,7 @@ export function DatabaseConnection() {
                     <SelectContent>
                       <SelectItem value="mysql">MySQL</SelectItem>
                       <SelectItem value="postgresql">PostgreSQL</SelectItem>
-                      <SelectItem value="mongodb">MongoDB</SelectItem>
+                    
                     </SelectContent>
                   </Select>
                   <FormMessage />

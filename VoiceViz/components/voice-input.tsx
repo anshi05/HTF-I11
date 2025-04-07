@@ -18,7 +18,13 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-export function VoiceInput() {
+export function VoiceInput({
+  rawResponse,
+  onRawResponseChange,
+}: {
+  rawResponse: string | null;
+  onRawResponseChange: (newRawResponse: string) => void;
+})  {
   
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -34,6 +40,24 @@ export function VoiceInput() {
     isMalicious: boolean;
     message: string;
   } | null>(null);
+
+
+  useEffect(() => {
+      if (typeof window !== "undefined") {
+        navigator.mediaDevices
+          .getUserMedia({ audio: true })
+          .then((stream) => {
+            // Permission granted, but we don't need to keep the stream open until recording
+            stream.getTracks().forEach((track) => track.stop());
+          })
+          .catch((err) => {
+            console.error("Microphone permission denied:", err);
+            setError(
+              "Microphone access denied. Please allow microphone access to use voice input."
+            );
+          });
+      }
+    }, []);
 
   const handleStartRecording = async () => {
     setError(null);
