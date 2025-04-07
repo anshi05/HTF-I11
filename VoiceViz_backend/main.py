@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
-from http.client import HTTPException
+
 import os
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordBearer ,OAuth2PasswordRequestForm
 from passlib.context import CryptContext
@@ -10,9 +10,24 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 import dns.resolver
+from typing import List
 
 app = FastAPI()
+
 ########################################################################################################################################################
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  
+        "*",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],  
+    allow_headers=["*"],  
+    expose_headers=["*"]  
+)
 
 ########################################################################################################################################################
 
@@ -28,6 +43,17 @@ class SignUpRequest(BaseModel):
     email: str
     user_name: str
     password: str
+
+# Request schema to receive executed query
+class QueryRequest(BaseModel):
+    query_exe: str
+
+# Response schema to return history
+class QueryResponse(BaseModel):
+    query_id: int
+    query_exe: str
+    timestamp: datetime
+
 
 
 def hash_password(password:str):
@@ -57,6 +83,24 @@ def domain_has_mx_record(email: str) -> bool:
     except:
         return False
 
+
+
+# Utility to get current user from token
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid Token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid Token")
+    
+    user = db.query(User).filter(User.email == email).first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+
+
 @app.get("/favicon.ico")
 async def favicon():
     return FileResponse(os.path.join("", "my_icon.jpeg"))
@@ -69,8 +113,7 @@ def read_root():
 async def signup(form_data : SignUpRequest , db:Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == form_data.email).first()
 
-    if not domain_has_mx_record(form_data.email):
-        raise HTTPException(status_code=400, detail="Invalid email domain (cannot receive emails)")
+    
     
     if existing_user:
         raise HTTPException(status_code=400, detail= "Email already registred")
@@ -91,10 +134,10 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db:Session = D
     if not user or not verify_password(form_data.password,user.password):
         raise HTTPException(status_code=400, detail="Invalid email or password")
     
-    acess_token = create_access_token(data = {"sub": user.email},expires_delta=timedelta(minutes= ACCESS_TOKEN_EXP_MIN))
-    return {"access_token":acess_token ,"token_type":"bearer","username":user.username  }
+    access_token = create_access_token(data = {"sub": user.email},expires_delta=timedelta(minutes= ACCESS_TOKEN_EXP_MIN))
+    return {"access_token":access_token ,"token_type":"bearer","username":user.username  }
 
-@app.post("/users/me")
+@app.get("/users/me")
 async def get_current_user_info(token: str = Depends(oauth2_scheme), db:Session = Depends(get_db)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -108,6 +151,18 @@ async def get_current_user_info(token: str = Depends(oauth2_scheme), db:Session 
     if user is None:
         raise HTTPException(status_code=401 , detail="User not Exist")
     
-    return user.id
+    return {"id": user.user_id,"email": user.email,"username":user.username}
 
 
+
+@app.get("/query-history/", response_model=List[QueryResponse])
+def get_query_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    history = db.query(Query_History).filter(Query_History.user_id == current_user.user_id).all()
+    return [
+        QueryResponse(
+            query_id=q.query_id,
+            query_exe=q.query_exe,
+            timestamp=q.timestamp,
+        )
+        for q in history
+    ]

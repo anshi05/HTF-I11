@@ -26,10 +26,11 @@ export function VoiceInput({
   onRawResponseChange: (newRawResponse: string) => void;
 })  {
   
+  
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [query, setQuery] = useState("");
-  
+  const [sqlQuery, setSqlQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -40,6 +41,7 @@ export function VoiceInput({
     isMalicious: boolean;
     message: string;
   } | null>(null);
+
 
 
   useEffect(() => {
@@ -141,7 +143,112 @@ export function VoiceInput({
   };
 
   
- 
+  const convertToSQL = async (text: string, language: string) => {
+    try {
+      const response = await fetch("/api/text-to-sql", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text, language }), // Include language here
+      });
+
+      if (!response.ok) {
+        throw new Error("Text-to-SQL conversion failed");
+      }
+
+      const data = await response.json();
+
+      if (data.sqlQuery) {
+        setSqlQuery(data.sqlQuery);
+        toast({
+          title: "Query generated",
+          description: "Your voice has been converted to SQL successfully.",
+        });
+      } else {
+        setError(
+          "Could not generate SQL query. Please try again with a clearer request."
+        );
+      }
+    } catch (err) {
+      console.error("Error converting to SQL:", err);
+      setError("Failed to convert text to SQL. Please try again.");
+    }
+  };
+
+  const handleSubmitQuery = async () => {
+    if (!query.trim()) {
+      setError("Please enter a query first.");
+      return;
+    }
+
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      // Fetch database connection details from localStorage
+      const dbConnection = JSON.parse(
+        localStorage.getItem("dbConnection") || "{}"
+      );
+
+      if (!dbConnection || !dbConnection.type || !dbConnection.host) {
+        setError(
+          "Database connection details are missing. Please connect to a database first."
+        );
+        return;
+      }
+
+      // Prepare the request body
+      const requestBody = {
+        ...dbConnection,
+        query,
+      };
+
+      // Send the API request
+      const response = await fetch(
+        "http://localhost:3000/api/database/execute",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Query executed",
+          description: "Your query was executed successfully.",
+        });
+
+        onRawResponseChange(JSON.stringify(data, null, 2));
+
+        console.log("rawResponse", rawResponse);
+
+        localStorage.setItem("rawResponse", JSON.stringify(data, null, 2));
+        // Log the response in the terminal
+
+        localStorage.setItem("Query", query);
+
+        // window.location.href = "http://localhost:3000/dashboard/visualizations";
+      } else {
+        setError(
+          data.error ||
+            "Failed to execute query. Please check your query and try again."
+        );
+      }
+    } catch (err) {
+      console.error("Error executing query:", err);
+      setError(
+        "An error occurred while executing the query. Please try again."
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -256,6 +363,14 @@ export function VoiceInput({
                   <p className="text-muted-foreground">{query}</p>
                 </div>
               )}
+               {sqlQuery && (
+                <div className="mt-4 p-4 bg-primary/10 rounded-md w-full">
+                  <p className="font-medium">Generated SQL:</p>
+                  <pre className="text-sm bg-muted p-2 rounded mt-2 overflow-x-auto">
+                    {sqlQuery}
+                  </pre>
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -268,14 +383,81 @@ export function VoiceInput({
             />
           
           </TabsContent>
+            
+          <Button
+              className="w-full"
+              onClick={handleSubmitQuery}
+              disabled={!query.trim() || isProcessing}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing
+                </>
+              ) : (
+                <>
+                  <Play className="mr-2 h-4 w-4" />
+                  Run Query
+                </>
+              )}
+            </Button>
 
-          <TabsContent value="file" className="space-y-4">
+            {sqlQuery && (
+              <div className="mt-4 p-4 bg-primary/10 rounded-md w-full">
+                <p className="font-medium">Generated SQL:</p>
+                <pre className="text-sm bg-muted p-2 rounded mt-2 overflow-x-auto">
+                  {sqlQuery}
+                </pre>
+              </div>
+            )}
+
+<TabsContent value="file" className="space-y-4">
             <div className="border-2 border-dashed border-border rounded-md p-8 text-center">
-              {/* <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-4" /> */}
-              <p className="text-muted-foreground mb-2">Drag and drop an audio file, or click to browse</p>
-              <p className="text-xs text-muted-foreground mb-4">Supports MP3, WAV, M4A (Max 10MB)</p>
-              <Button variant="outline">Browse Files</Button>
+              <FileAudio className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground mb-2">
+                Drag and drop an audio file, or click to browse
+              </p>
+              <p className="text-xs text-muted-foreground mb-4">
+                Supports MP3, WAV, M4A (Max 10MB)
+              </p>
+              <input
+                type="file"
+                id="audio-upload"
+                className="hidden"
+                accept="audio/wav,audio/mp3,audio/mpeg,audio/m4a"
+                onChange={handleFileUpload}
+                disabled={isProcessing }
+              />
+              <Button
+                variant="outline"
+                onClick={() => document.getElementById("audio-upload")?.click()}
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing
+                  </>
+                ) : (
+                  "Browse Files"
+                )}
+              </Button>
             </div>
+            
+            {query && (
+              <div className="mt-4 p-4 bg-muted rounded-md w-full">
+                <p className="font-medium">Transcribed Text:</p>
+                <p className="text-muted-foreground">{query}</p>
+              </div>
+            )}
+            {sqlQuery && (
+              <div className="mt-4 p-4 bg-primary/10 rounded-md w-full">
+                <p className="font-medium">Generated SQL:</p>
+                <pre className="text-sm bg-muted p-2 rounded mt-2 overflow-x-auto">
+                  {sqlQuery}
+                </pre>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>
