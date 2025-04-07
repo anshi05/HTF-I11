@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { useAuth } from "./auth-provider"
+import { useAuth } from "@/components/auth-provider"
 
 export function HeroSection() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
