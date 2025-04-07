@@ -1,51 +1,48 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Montserrat, Poppins } from "next/font/google"
-import "./globals.css"
-import { ThemeProvider } from "../components/theme-provider"
-import { AuthProvider } from "../components/auth-provider"
-import { Toaster } from "@/components/ui/toaster"
+import type React from "react";
+import type { Metadata } from "next";
+import { Montserrat, Poppins } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/components/auth-provider";
+import { Toaster } from "@/components/ui/toaster";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
   display: "swap",
-})
+});
 
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-poppins",
   display: "swap",
-})
+});
 
 export const metadata: Metadata = {
-  title: "VoiceViz - Voice to Visualization",
+  title: "VoiceViz ",
   description: "Transform your voice queries into powerful data visualizations",
-    generator: 'v0.dev'
-}
+  generator: "v0.dev",
+  icons: {
+    icon: "/icon.png", // or "/favicon.png" or ".svg"
+  },
+};
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${montserrat.variable} ${poppins.variable} font-sans`}>
+      <body suppressHydrationWarning className={`${montserrat.variable} ${poppins.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            
+           
               {children}
               <Toaster />
-           
+     
           </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }
-
-
-
-import './globals.css'
