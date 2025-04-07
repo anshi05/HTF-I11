@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Download, Share2, Info, Copy, Trash2 } from "lucide-react"
-import { Loader } from "./ui/loader"
+import { Loader } from "@/components/ui/loader"
 
 export function VisualizationPanel({
   rawResponse,
