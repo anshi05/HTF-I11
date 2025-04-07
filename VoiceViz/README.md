@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="VoiceViz/public/icon.png" alt="VoiceViz Logo" width="120"/>
+<img src="public/icon.png" alt="VoiceViz Logo" width="120"/>
 
 # **VoiceViz**
 ### ✨ Voice to Visualization ✨
