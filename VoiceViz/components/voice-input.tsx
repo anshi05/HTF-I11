@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ShowTable } from "@/components/show-tables";
 
 export function VoiceInput({
   rawResponse,
@@ -42,6 +43,19 @@ export function VoiceInput({
     message: string;
   } | null>(null);
 
+  const languages = [
+    { code: "en", label: "English" },
+    { code: "hi", label: "Hindi" },
+    { code: "es", label: "Spanish" },
+    { code: "fr", label: "French" },
+    { code: "de", label: "German" },
+    { code: "zh", label: "Chinese" },
+    { code: "ja", label: "Japanese" },
+    { code: "ko", label: "Korean" },
+    { code: "ru", label: "Russian" },
+    { code: "pt", label: "Portuguese" },
+  ];
+
 
 
   useEffect(() => {
@@ -61,6 +75,10 @@ export function VoiceInput({
       }
     }, []);
 
+   
+
+
+    
   const handleStartRecording = async () => {
     setError(null);
     setIsRecording(true);
@@ -308,7 +326,31 @@ export function VoiceInput({
     }
   };
 
+  const [showPopup, setShowPopup] = useState(false);
+  const [hasDismissedPopup, setHasDismissedPopup] = useState(false);
+  const [canRunQuery, setCanRunQuery] = useState(true);
+  const [showWarning, setShowWarning] = useState(false);
+  const sensitiveKeywords = ['delete', 'drop', 'truncate'];
 
+  const handleQueryChange = (e:any) => {
+    const input = e.target.value;
+    setQuery(input);
+  
+    const sensitiveKeywords = ['delete', 'drop', 'truncate', 'create','alter','insert','update','merge'];
+    const containsSensitive = sensitiveKeywords.some(keyword =>
+      input.toLowerCase().includes(keyword)
+    );
+  
+    if (containsSensitive) {
+      setShowPopup(true);
+      setCanRunQuery(false); // temporarily disable
+    } else {
+      setShowPopup(false);
+      setCanRunQuery(true);
+      setShowWarning(false);
+    }
+  };
+  
   return (
     <Card className="border border-border/50">
       <CardHeader>
@@ -371,23 +413,68 @@ export function VoiceInput({
                   </pre>
                 </div>
               )}
+
+              
             </div>
           </TabsContent>
 
           <TabsContent value="text" className="space-y-4">
-            <Textarea
-              placeholder="Enter your query here (e.g., 'Show me sales data for Q1 2023 by region')"
-              className="min-h-[120px]"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
+          <Textarea
+        placeholder="Enter your SQL query here (e.g., 'Select * from users;')"
+        className="min-h-[120px]"
+        value={query}
+        onChange={handleQueryChange}
+      />
+
+      {showWarning && (
+        <p className="text-red-600 font-medium">Please change the query to enable execution.</p>
+      )}
           
+          {showPopup && !hasDismissedPopup && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+    <div
+      className="p-6 rounded-xl shadow-lg max-w-sm w-full text-center"
+      style={{ backgroundColor: "#09090B", border: "2px solid #8B43F1" }}
+    >
+      <h2 className="text-xl font-semibold text-red-600 mb-4">Sensitive Query Detected!</h2>
+      <p className="mb-6 text-white">
+        Are you sure you want to change the database? Once cancelled you cannot write any query that can update the database
+      </p>
+      <div className="flex justify-center gap-4">
+        <Button
+          variant="outline"
+          onClick={() => {
+            setShowPopup(false);
+            setHasDismissedPopup(true); // ✅ don't show again
+            setCanRunQuery(false);
+            setShowWarning(true);
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          variant="destructive"
+          onClick={() => {
+            setShowPopup(false);
+            setCanRunQuery(true);
+            setShowWarning(false);
+          }}
+        >
+          Proceed
+        </Button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
           </TabsContent>
             
           <Button
               className="w-full"
               onClick={handleSubmitQuery}
-              disabled={!query.trim() || isProcessing}
+              disabled={!query.trim() || isProcessing||!canRunQuery}
             >
               {isProcessing ? (
                 <>
@@ -402,6 +489,8 @@ export function VoiceInput({
               )}
             </Button>
 
+            <ShowTable/>
+
             {sqlQuery && (
               <div className="mt-4 p-4 bg-primary/10 rounded-md w-full">
                 <p className="font-medium">Generated SQL:</p>
@@ -411,7 +500,7 @@ export function VoiceInput({
               </div>
             )}
 
-<TabsContent value="file" className="space-y-4">
+            <TabsContent value="file" className="space-y-4">
             <div className="border-2 border-dashed border-border rounded-md p-8 text-center">
               <FileAudio className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-2">
