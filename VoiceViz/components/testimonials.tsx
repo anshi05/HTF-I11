@@ -51,7 +51,7 @@ export function Testimonials() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true, margin: "-100px" }}
             >
-              <Card className="h-full border border-border/50">
+              <Card className="h-full border hover:border-primary/50 transition-colors duration-300 border-border/50">
                 <CardContent className="pt-6">
                   <Quote className="h-8 w-8 text-primary/40 mb-4" />
                   <p className="mb-6 text-muted-foreground">{testimonial.content}</p>

@@ -150,7 +150,7 @@ export function HeroSection() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="text-lg px-8 hover:bg-primary/10 transition-colors">
-              <Link href="/how-it-works">Learn More</Link>
+              <Link href="/how-it-works">Getting Started</Link>
             </Button>
           </motion.div>
 
