@@ -542,6 +542,23 @@ export function VoiceInput({
                 </pre>
               </div>
             )}
+             <Button
+              className="w-full"
+              onClick={handleSubmitQuery}
+              disabled={!query.trim() || isProcessing||!canRunQuery}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing
+                </>
+              ) : (
+                <>
+                  <Play className="mr-2 h-4 w-4" />
+                  Run Query
+                </>
+              )}
+            </Button>
 
             <TabsContent value="file" className="space-y-4">
             <div className="border-2 border-dashed border-border rounded-md p-8 text-center">
@@ -575,23 +592,7 @@ export function VoiceInput({
                 )}
               </Button>
             </div>
-            <Button
-              className="w-full"
-              onClick={handleSubmitQuery}
-              disabled={!query.trim() || isProcessing||!canRunQuery}
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing
-                </>
-              ) : (
-                <>
-                  <Play className="mr-2 h-4 w-4" />
-                  Run Query
-                </>
-              )}
-            </Button>
+           
             
             {query && (
               <div className="mt-4 p-4 bg-muted rounded-md w-full">
