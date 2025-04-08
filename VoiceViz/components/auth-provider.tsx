@@ -10,8 +10,8 @@ interface AuthContextType {
     email?: string | null;
     image?: string | null;
   };
-  isAuthenticated: boolean;
   logout: () => void;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({

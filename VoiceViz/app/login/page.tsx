@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { toast } from "@/components/ui/use-toast"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Loader2, LogIn, Mail, Lock, Github, AlertCircle } from "lucide-react"
+import { Loader2, LogIn, Mail, Lock, Github, AlertCircle, Eye, EyeOff } from "lucide-react"
 import { signIn } from "next-auth/react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -29,6 +29,7 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [error, setError] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false); 
 
   // Get error message from URL if present
   useEffect(() => {
@@ -81,7 +82,7 @@ export default function LoginPage() {
           description: "Welcome back!",
         })
 
-        router.push("/dashboard")
+        router.push("/")
         router.refresh()
       }
     } catch (error) {
@@ -231,27 +232,36 @@ export default function LoginPage() {
                 </motion.div>
 
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Lock className="h-4 w-4 text-primary" />
-                          Password
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="••••••••"
-                            {...field}
-                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Lock className="h-4 w-4 text-primary" />
+                      Password
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"} // Toggle input type
+                          placeholder="••••••••"
+                          {...field}
+                          className="transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)} // Toggle visibility
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4 text-primary" /> : <Eye className="h-4 w-4 text-primary" />}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
                 </motion.div>
 
                 <motion.div

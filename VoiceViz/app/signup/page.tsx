@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { toast } from "@/components/ui/use-toast"
-import { Loader2, Check, ArrowRight, User, Mail, Lock, Github, AlertCircle } from "lucide-react"
+import { Loader2, Check, ArrowRight, User, Mail, Lock, Github, AlertCircle, Eye, EyeOff } from "lucide-react"
 import { signIn } from "next-auth/react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -36,6 +36,8 @@ export default function SignupPage() {
   const totalSteps = 3
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [error, setError] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false); // State for password visibility
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // State for confirm password visibility
 
   // Get error message from URL if present
   useEffect(() => {
@@ -112,7 +114,7 @@ export default function SignupPage() {
       })
 
       // Redirect to dashboard
-      router.push("/dashboard")
+      router.push("/login")
       router.refresh()
     } catch (error) {
       setError("Failed to create account")
@@ -366,41 +368,64 @@ export default function SignupPage() {
                         </motion.div>
                       </div>
                       <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <div className="relative">
                               <Input
-                                type="password"
+                                type={showPassword ? "text" : "password"} // Toggle input type
                                 placeholder="••••••••"
                                 {...field}
                                 className="transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:border-primary"
                               />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Confirm Password</FormLabel>
-                            <FormControl>
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)} // Toggle visibility
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                              >
+                                {showPassword ? <EyeOff className="h-4 w-4 text-primary" /> : <Eye className="h-4 w-4 text-primary" />}
+                              </button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Confirm Password</FormLabel>
+                          <FormControl>
+                            <div className="relative">
                               <Input
-                                type="password"
+                                type={showConfirmPassword ? "text" : "password"} // Toggle input type
                                 placeholder="••••••••"
                                 {...field}
                                 className="transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:border-primary"
                               />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                              <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)} // Toggle visibility
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                              >
+                                {showConfirmPassword ? (
+                                  <EyeOff className="h-4 w-4 text-primary" />
+                                ) : (
+                                  <Eye className="h-4 w-4 text-primary" />
+                                )}
+                              </button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                       <div className="pt-4 flex justify-between">
                         <Button
                           type="button"

@@ -11,28 +11,30 @@ import { Loader2, Database, Table2, BarChart3 } from "lucide-react"
 // Sample data - replace with your actual data fetching logic
 import { sampleData } from "./sample-data"
 
+import Link from "next/link"; // Import Link for navigation
+
 export default function DataVisualization() {
-  const [data, setData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState("overview")
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     // Simulate data fetching
     const fetchData = async () => {
       try {
-         setTimeout(() => {
-          setData(sampleData)
-          setLoading(false)
-        }, 1000)
+        setTimeout(() => {
+          setData(sampleData);
+          setLoading(false);
+        }, 1000);
       } catch (err) {
-        setError("Failed to fetch data. Please try again.")
-        setLoading(false)
+        setError("Failed to fetch data. Please try again.");
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   if (loading) {
     return (
@@ -48,7 +50,7 @@ export default function DataVisualization() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -72,7 +74,7 @@ export default function DataVisualization() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -111,16 +113,24 @@ export default function DataVisualization() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="mt-6 fade-in">
-          <DataOverview  />
+          <DataOverview />
         </TabsContent>
         <TabsContent value="table" className="mt-6 fade-in">
           <DataTable />
         </TabsContent>
         <TabsContent value="charts" className="mt-6 fade-in">
-          <DataCharts/>
+          <DataCharts />
         </TabsContent>
       </Tabs>
-    </div>
-  )
-}
 
+      {/* Button to navigate to the query page */}
+      <div className="flex justify-center mt-8">
+        <Link href="/dashboard?tab=query">
+          <button className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/80 transition-all">
+            Speak Your Query
+          </button>
+        </Link>
+      </div>
+    </div>
+  );
+}
