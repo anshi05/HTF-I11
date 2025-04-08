@@ -24,8 +24,10 @@ export function DataCharts() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [shouldPromptQuery, setShouldPromptQuery] = useState(false)
+  const [reportNotes, setReportNotes] = useState(""); // New state for user input
 
-  useEffect(() => {
+
+   useEffect(() => {
     const rawResponse = localStorage.getItem("rawResponse")
     if (!rawResponse) {
       setShouldPromptQuery(true)
@@ -94,6 +96,7 @@ export function DataCharts() {
     fetchAndUnzipImages()
   }, [])
 
+
   const handleDownloadReport = async () => {
     const rawResponse = localStorage.getItem("rawResponse")
   
@@ -109,7 +112,10 @@ export function DataCharts() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ data: parsed.data }),
+        body: JSON.stringify({
+          data: parsed.data,
+          notes: reportNotes || "", // Ensure it's defined
+        }),
       })
   
       if (!res.ok) {
@@ -144,11 +150,23 @@ export function DataCharts() {
               <CardDescription>
                 These charts are AI-generated based on your uploaded data.
               </CardDescription>
-              <div className="mt-4">
-    <Button variant="default" className="text-white" onClick={handleDownloadReport}>
-      Download Report
-    </Button>
-  </div>
+              <div className="mt-4 flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+  <input
+    type="text"
+    value={reportNotes}
+    onChange={(e) => setReportNotes(e.target.value)}
+    placeholder="Any specific things you want in the report"
+    className="border border-gray-300 rounded-md p-2 w-full sm:w-96 text-sm"
+  />
+  <Button
+    variant="default"
+    className="text-white w-full sm:w-auto"
+    onClick={handleDownloadReport}
+  >
+    Download Report
+  </Button>
+</div>
+
             </div>
             <div>
               <UITooltip>

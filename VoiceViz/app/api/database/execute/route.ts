@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     // Parse request body
     const requestBody = await req.json();
     console.log("Received request body:", requestBody);
-
+    
     // Extract database connection details
     const { type, host, port, database, username, password, query } = requestBody;
 
@@ -19,9 +19,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-
-    let result;
-
+   
     // Execute query based on the database type
     switch (type.toLowerCase()) {
       case "mysql":
