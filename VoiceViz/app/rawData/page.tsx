@@ -1,10 +1,11 @@
+"use client"
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Download, Share2, Info, Copy, Trash2 } from "lucide-react"
 import { Loader } from "@/components/ui/loader"
 
-export function VisualizationPanel({
+export default function VisualizationPanel({
   rawResponse,
   onRawResponseChange,
 }: {
@@ -42,7 +43,7 @@ export function VisualizationPanel({
   }
 
   return (
-    <Card className="border border-border/50 h-full">
+    <Card className="border border-border/50 h-full  items-center  justify-center ">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Raw Data</CardTitle>
         <div className="flex items-center gap-2">

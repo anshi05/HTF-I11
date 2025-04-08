@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { AppSidebar } from "../../components/app-sidebar"
 import { VoiceInput } from "../../components/voice-input"
-import { VisualizationPanel } from "../../components/visualization-panel"
+import { TableDesc } from "../../components/table-desc"
 import { SidebarInset } from "../../components/ui/sidebar"
 import { motion } from "framer-motion"
 import { DatabaseConnection } from "@/components/database-connection"
@@ -164,7 +164,7 @@ export default function Dashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
-                  <VisualizationPanel rawResponse={rawResponse} onRawResponseChange={setRawResponse} />
+                  <TableDesc />
                 </motion.div>
               </div>
             </TabsContent>

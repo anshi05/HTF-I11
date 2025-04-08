@@ -37,7 +37,7 @@ export function AppSidebar() {
     {
       title: "Extracted Raw Data",
       icon: FileText,
-      href: "/dashboard/raw-data",
+      href: "/rawData",
     },
     {
       title: "Settings",

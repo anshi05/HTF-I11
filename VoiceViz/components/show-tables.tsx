@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Switch } from "@/components/ui/switch"; // Assuming you have a Switch component
+import  {TableDesc} from "./table-desc";
 
 const formSchema = z.object({
   type: z.string().min(1, { message: "Please select a database type." }),
@@ -24,8 +25,8 @@ export function ShowTable() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [query] = useState("SHOW Tables;");
-  const [queryPostgres] = useState("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';");
+  const [query] = useState("SELECT TABLE_NAME,COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME, ORDINAL_POSITION;");
+  const [queryPostgres] = useState("SELECT table_name,column_name FROM information_schema.columns WHERE table_schema = 'public' ORDER BY table_name, ordinal_position;");
   const [developerMode, setDeveloperMode] = useState(false); // Toggle state for developer mode
 
   const dbConnection = JSON.parse(localStorage.getItem("dbConnection") || "{}");
@@ -87,36 +88,67 @@ export function ShowTable() {
       setError("Please enter a query first.");
       return;
     }
-
+  
     setIsProcessing(true);
     setError(null);
-
+  
     try {
       const dbConnection = JSON.parse(localStorage.getItem("dbConnection") || "{}");
-
+  
       if (!dbConnection?.type || !dbConnection?.host) {
         setError("Missing DB connection details.");
         return;
       }
-
+  
       const bodyPayload = {
         ...dbConnection,
         query: dbConnection.type?.toLowerCase() === "mysql" ? query : queryPostgres,
       };
-
+  
+      // Fetch table and column data from the database
       const response = await fetch("/api/database/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bodyPayload),
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         toast({ title: "Query executed", description: "Successfully fetched data." });
-        const stringified = JSON.stringify(data, null, 2);
-        setRawResponse(stringified);
-        localStorage.setItem("rawResponse", stringified);
+  
+        // Send the fetched data to Gemini for column descriptions
+        const geminiResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [
+                {
+                  role: "user",
+                  parts: [
+                    {
+                      text: `Format the following JSON data to include a one-line description for each column:
+                      ${JSON.stringify(data)}`,
+                    },
+                  ],
+                },
+              ],
+            }),
+          }
+        );
+  
+        const geminiData = await geminiResponse.json();
+  
+        if (geminiResponse.ok) {
+          const formattedData =
+            geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "No description available.";
+          setRawResponse(formattedData);
+          localStorage.setItem("rawResponse", formattedData);
+        } else {
+          setError("Failed to get descriptions from Gemini.");
+        }
       } else {
         setError(data.error || "Failed to execute query.");
       }
@@ -172,11 +204,7 @@ export function ShowTable() {
             )
           ) : (
             <div className="flex items-center justify-center h-full">
-              <img
-                src="/icon.png" // Replace with your image path
-                alt="Placeholder"
-                className="max-w-full max-h-full"
-              />
+              <TableDesc />
             </div>
           )}
         </div>
