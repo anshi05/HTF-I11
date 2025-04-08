@@ -1,6 +1,7 @@
 import { HeroSection } from "@/components/hero-section"
 import { Footer } from "@/components/footer"
 import { Navbar } from "@/components/navbar"
+import { DemoVideo } from "../components/demo-video"
 
 export default function Home() {
   return (
@@ -8,6 +9,7 @@ export default function Home() {
       <Navbar />
       <main>
         <HeroSection />
+        <DemoVideo />
       </main>
       <Footer />
     </div>
