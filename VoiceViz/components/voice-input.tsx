@@ -328,26 +328,29 @@ export function VoiceInput({
       formData.append("audio", file);
 
       // Send to Google Speech-to-Text API
-      const response = await fetch("/api/speech-to-text", {
+      const response = await fetch("/api/speech-to-text2", {
         method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("Speech-to-text processing failed");
+        throw new Error("Speech-to-text2 processing failed");
       }
 
       const data = await response.json();
 
       if (data.transcription) {
         setQuery(data.transcription);
-
-        
+        await convertToSQL(data.transcription, language);
       } else {
         setError(
           "Could not transcribe audio. Please try again or use text input."
         );
       }
+
+
+
+
     } catch (err) {
       console.error("Error processing audio file:", err);
       setError(
@@ -528,16 +531,6 @@ export function VoiceInput({
   </div>
 )}
 
-
-
-          </TabsContent>
-
-        
-            
-          
-
-            {/* <ShowTable/> */}
-
             {sqlQuery && (
               <div className="mt-4 p-4 bg-primary/10 rounded-md w-full">
                 <p className="font-medium">Generated SQL:</p>
@@ -564,6 +557,16 @@ export function VoiceInput({
               )}
             </Button>
 
+
+          </TabsContent>
+
+        
+            
+          
+
+            {/* <ShowTable/> */}
+
+          
             <TabsContent value="file" className="space-y-4">
             <div className="border-2 border-dashed border-border rounded-md p-8 text-center">
               <FileAudio className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
@@ -586,32 +589,45 @@ export function VoiceInput({
                 onClick={() => document.getElementById("audio-upload")?.click()}
                 disabled={isProcessing}
               >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing
-                  </>
-                ) : (
-                  "Browse Files"
-                )}
+               
+                  Browse Files
+                
               </Button>
             </div>
            
             
             {query && (
-              <div className="mt-4 p-4 bg-muted rounded-md w-full">
-                <p className="font-medium">Transcribed Text:</p>
-                <p className="text-muted-foreground">{query}</p>
-              </div>
-            )}
-            {sqlQuery && (
-              <div className="mt-4 p-4 bg-primary/10 rounded-md w-full">
-                <p className="font-medium">Generated SQL:</p>
-                <pre className="text-sm bg-muted p-2 rounded mt-2 overflow-x-auto">
-                  {sqlQuery}
-                </pre>
-              </div>
-            )}
+                <div className="mt-4 p-4 bg-muted rounded-md w-full">
+                  <p className="font-medium">Recognized Query:</p>
+                  <p className="text-muted-foreground">{query}</p>
+                </div>
+              )}
+               {sqlQuery && (
+                <div className="mt-4 p-4 bg-primary/10 rounded-md w-full">
+                  <p className="font-medium">Generated SQL:</p>
+                  <pre className="text-sm bg-muted p-2 rounded mt-2 overflow-x-auto">
+                    {sqlQuery}
+                  </pre>
+                </div>
+              )}
+             <Button
+              className="w-full"
+              onClick={handleSubmitQuery}
+              disabled={!query.trim() || isProcessing||!canRunQuery}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing
+                </>
+              ) : (
+                <>
+                  <Play className="mr-2 h-4 w-4" />
+                  Run Query
+                </>
+              )}
+            </Button>
+
           </TabsContent>
           <ShowTable/>
         </Tabs>
