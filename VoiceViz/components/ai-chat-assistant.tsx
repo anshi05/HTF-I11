@@ -15,10 +15,9 @@ export function AIChatAssistant() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: "Hello! I'm your AI assistant. Ask me anything about your data or how to use VoiceViz.",
+      content: "Hello! I'm your AI assistant. How can I help you today? Please select an option below:",
     },
   ])
-
   const filterGeminiResponse = (text: string): string => {
     return text
       .replace(/\*\*/g, "")                  // Remove all double asterisks (bold)
@@ -30,13 +29,49 @@ export function AIChatAssistant() {
       .trim();                               // Trim whitespace
   };  
 
+  const [showOptions, setShowOptions] = useState(true)
+
+  const predefinedQuestions = [
+    { question: "What is VoiceViz?", answer: "VoiceViz is a tool that helps you visualize and analyze voice data." },
+    { question: "How do I upload data?", answer: "You can upload data by clicking on the 'Upload' button in the dashboard." },
+    { question: "How do I interpret the results?", answer: "The results are displayed as graphs and charts. Hover over them for detailed insights." },
+    { question: "Some other help", answer: null },
+    { question: "End chat", answer: "Thank you for chatting with me. Have a great day!" },
+  ]
+
+  const handleOptionClick = (option: string) => {
+    if (option === "Some other help") {
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", content: option },
+        { role: "assistant", content: "Please type your query below, and I'll do my best to assist you." },
+      ])
+      setShowOptions(false)
+    } else if (option === "End chat") {
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", content: option },
+        { role: "assistant", content: "Thank you for chatting with me. Have a great day!" },
+      ])
+      setShowOptions(false)
+    } else {
+      const selectedAnswer = predefinedQuestions.find((q) => q.question === option)?.answer
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", content: option },
+        { role: "assistant", content: selectedAnswer || "I'm sorry, I don't have an answer for that." },
+        { role: "assistant", content: "Would you like to ask anything else? Select an option below or click 'End chat' to exit." },
+      ])
+    }
+  }
+
   const handleSendMessage = async () => {
-    if (!message.trim()) return;
-  
-    const userMessage = { role: "user", content: message };
-    setMessages((prev) => [...prev, userMessage]);
-    setMessage("");
-  
+    if (!message.trim()) return
+
+    const userMessage = { role: "user", content: message }
+    setMessages((prev) => [...prev, userMessage])
+    setMessage("")
+
     try {
       const requestBody = {
         contents: [
@@ -44,19 +79,19 @@ export function AIChatAssistant() {
             role: "user",
             parts: [
               {
-                text: message,  // Removed extra prefix for cleaner input
+                text: message,
               },
             ],
           },
         ],
-      };
-  
-      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY; // Must be public if used in client-side code
-  
-      if (!apiKey) {
-        throw new Error("API key not defined in NEXT_PUBLIC_GEMINI_API_KEY");
       }
-  
+
+      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY
+
+      if (!apiKey) {
+        throw new Error("API key not defined in NEXT_PUBLIC_GEMINI_API_KEY")
+      }
+
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
         {
@@ -66,33 +101,30 @@ export function AIChatAssistant() {
           },
           body: JSON.stringify(requestBody),
         }
-      );
-  
-      const data = await response.json();
-      console.log("Gemini raw response:", data);
-  
-      if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status} - ${JSON.stringify(data)}`);
-      }
-  
-      const rawGeminiReply = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "I'm sorry, I didn't understand that.";
-      const geminiReply = filterGeminiResponse(rawGeminiReply);
+      )
 
+      const data = await response.json()
+      console.log("Gemini raw response:", data)
+
+      if (!response.ok) {
+        throw new Error(`Gemini API error: ${response.status} - ${JSON.stringify(data)}`)
+      }
+
+      const rawGeminiReply = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "I'm sorry, I didn't understand that."
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: geminiReply },
-      ]);
+        { role: "assistant", content: rawGeminiReply },
+        { role: "assistant", content: "Would you like to ask anything else? Select an option below or click 'End chat' to exit." },
+      ])
+      setShowOptions(true)
     } catch (error) {
-      console.error("Gemini API Error:", error);
+      console.error("Gemini API Error:", error)
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "Oops! Something went wrong while contacting Gemini." },
-      ]);
+      ])
     }
-  };
-  
-  
-  
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -125,15 +157,17 @@ export function AIChatAssistant() {
       </div>
     )
   }
+
   const handleClearMessages = () => {
     setMessages([
       {
         role: "assistant",
-        content: "Hello! I'm your AI assistant. Ask me anything about your data or how to use VoiceViz.",
+        content: "Hello! I'm your AI assistant. How can I help you today? Please select an option below:",
       },
-    ]);
-  };
-  
+    ])
+    setShowOptions(true)
+  }
+
   return (
     <Card className="fixed bottom-6 right-6 w-80 md:w-96 shadow-lg border border-border/50">
       <CardHeader className="py-3 flex flex-row items-center justify-between">
@@ -142,35 +176,34 @@ export function AIChatAssistant() {
           AI Assistant
         </CardTitle>
         <div className="flex items-center gap-1">
-  <Button
-    variant="ghost"
-    size="icon"
-    className="h-7 w-7"
-    onClick={handleClearMessages}
-    title="Clear chat"
-  >
-    <Trash className="h-4 w-4" />
-  </Button>
-  <Button
-    variant="ghost"
-    size="icon"
-    className="h-7 w-7"
-    onClick={() => setIsMinimized(true)}
-    title="Minimize"
-  >
-    <Minimize className="h-4 w-4" />
-  </Button>
-  <Button
-    variant="ghost"
-    size="icon"
-    className="h-7 w-7"
-    onClick={() => setIsOpen(false)}
-    title="Close"
-  >
-    <X className="h-4 w-4" />
-  </Button>
-</div>
-
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={handleClearMessages}
+            title="Clear chat"
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => setIsMinimized(true)}
+            title="Minimize"
+          >
+            <Minimize className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => setIsOpen(false)}
+            title="Close"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="p-4 h-80 overflow-y-auto flex flex-col gap-3">
         {messages.map((msg, index) => (
@@ -196,21 +229,37 @@ export function AIChatAssistant() {
             </div>
           </div>
         ))}
+        {showOptions && (
+          <div className="flex flex-col gap-2 mt-4">
+            {predefinedQuestions.map((q, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                className="text-left"
+                onClick={() => handleOptionClick(q.question)}
+              >
+                {q.question}
+              </Button>
+            ))}
+          </div>
+        )}
       </CardContent>
-      <CardFooter className="p-3 pt-0">
-        <div className="flex w-full items-center gap-2">
-          <Input
-            placeholder="Ask a question..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="flex-1"
-          />
-          <Button size="icon" onClick={handleSendMessage} disabled={!message.trim()}>
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardFooter>
+      {!showOptions && (
+        <CardFooter className="p-3 pt-0">
+          <div className="flex w-full items-center gap-2">
+            <Input
+              placeholder="Type your query..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="flex-1"
+            />
+            <Button size="icon" onClick={handleSendMessage} disabled={!message.trim()}>
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardFooter>
+      )}
     </Card>
   )
 }
