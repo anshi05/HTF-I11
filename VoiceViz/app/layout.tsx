@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   description: "Transform your voice queries into powerful data visualizations",
   generator: "v0.dev",
   icons: {
-    icon: "/icon.png", // or "/favicon.png" or ".svg"
+    icon: "/Icon.png", // or "/favicon.png" or ".svg"
   },
 };
 

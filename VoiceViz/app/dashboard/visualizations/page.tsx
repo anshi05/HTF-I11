@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import DataVisualization from "@/components/visualization/data-visualization"
+import { AIChatAssistant } from "@/components/ai-chat-assistant"
 
 export const metadata: Metadata = {
   title: "Data Visualization | VoiceViz",
@@ -11,6 +12,8 @@ export default function VisualizationPage() {
       <div className="flex min-h-screen w-full flex-col bg-background dark">
         <div className="flex-1">
           <DataVisualization />
+          <AIChatAssistant />
+
         </div>
       </div>
     )

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { useAuth } from "@/components/auth-provider"
+import { Astronaut3D } from "@/components/astronaut3D";
 
 export function HeroSection() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -153,6 +154,11 @@ export function HeroSection() {
               <Link href="/how-it-works">Getting Started</Link>
             </Button>
           </motion.div>
+
+          {/* Add the Astronaut3D component */}
+          <div className="absolute top-[2em] right-0 transform -translate-x-1/2">
+                  <Astronaut3D />
+          </div>
 
           {/* Floating elements */}
           <motion.div

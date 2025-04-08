@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2 } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import { Astronaut3D } from "@/components/astronaut3D";
-
+import { AIChatAssistant } from "@/components/ai-chat-assistant"
 
 export default function Dashboard() {
   const router = useRouter()
@@ -113,7 +113,7 @@ export default function Dashboard() {
                 >
 
                 {/* Add the Astronaut3D component */}
-                <div className="absolute bottom-[12em] right-10 transform -translate-x-1/2">
+                <div className="absolute bottom-[10em] right-10 transform -translate-x-1/2">
                   <Astronaut3D />
                 </div>
 
@@ -171,6 +171,7 @@ export default function Dashboard() {
           </Tabs>
         </main>
       </SidebarInset>
+      <AIChatAssistant />
     </div>
   )
 }

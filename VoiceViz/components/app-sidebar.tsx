@@ -35,16 +35,6 @@ export function AppSidebar() {
       href: "/dashboard/visualizations",
     },
     {
-      title: "Reports",
-      icon: FileText,
-      href: "/dashboard/reports",
-    },
-    {
-      title: "Uploads",
-      icon: Upload,
-      href: "/dashboard/uploads",
-    },
-    {
       title: "Settings",
       icon: Settings,
       href: "/settings",
@@ -99,9 +89,6 @@ export function AppSidebar() {
       <SidebarFooter className="p-4">
         <div className="flex items-center justify-between mb-4">
           <ModeToggle />
-          <Button variant="ghost" size="icon" onClick={logout}>
-            <LogOut className="h-5 w-5" />
-          </Button>
         </div>
         <motion.div
           className="flex items-center gap-3"

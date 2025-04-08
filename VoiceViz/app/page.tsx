@@ -4,6 +4,7 @@ import { Navbar } from "@/components/navbar"
 import { DemoVideo } from "../components/demo-video"
 import { Testimonials } from "../components/testimonials"
 import { FeatureHighlights } from "../components/feature-highlights"
+import { AIChatAssistant } from "@/components/ai-chat-assistant"
 
 export default function Home() {
   return (
@@ -15,6 +16,7 @@ export default function Home() {
         <DemoVideo youtubeUrl="https://youtu.be/2kCTmlU0RPg?si=tQEO1Z-WnKDMxY2l"/>
         <Testimonials />
       </main>
+      <AIChatAssistant />
       <Footer />
     </div>
   )
