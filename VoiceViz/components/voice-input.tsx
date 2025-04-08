@@ -157,6 +157,7 @@ export function VoiceInput({
       formData.append("audio", audioBlob, "recording.wav");
       formData.append("language", language);
 
+    
       // Send to your backend API
       const response = await fetch("/api/speech-to-text", {
         method: "POST",
@@ -190,12 +191,14 @@ export function VoiceInput({
   
   const convertToSQL = async (text: string, language: string) => {
     try {
+
+      const tableResponse = localStorage.getItem("TableResponse");
       const response = await fetch("/api/text-to-sql", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text, language }), // Include language here
+        body: JSON.stringify({ text, language,tableResponse }), // Include language here
       });
 
       if (!response.ok) {

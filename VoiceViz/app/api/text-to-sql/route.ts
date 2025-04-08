@@ -16,6 +16,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No text provided" }, { status: 400 });
     }
 
+    const tableResponse = localStorage.getItem("TableResponse");
+    
     // Build Gemini prompt with language included
     const requestBody = {
       contents: [

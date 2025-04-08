@@ -114,7 +114,7 @@ export function ShowTable() {
         toast({ title: "Query executed", description: "Successfully fetched data." });
         const stringified = JSON.stringify(data, null, 2);
         setRawResponse(stringified);
-        localStorage.setItem("rawResponse", stringified);
+        localStorage.setItem("TableResponse", stringified);
       } else {
         setError(data.error || "Failed to execute query.");
       }
