@@ -1,21 +1,29 @@
 "use client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Download, Copy, Trash2 } from "lucide-react"
 import { Loader } from "@/components/ui/loader"
 
-export default function VisualizationPanel({
-  rawResponse,
-  onRawResponseChange,
-}: {
-  rawResponse: string | null
-  onRawResponseChange: (newRawResponse: string) => void
-}) {
+export default function VisualizationPanel() {
+  const [rawResponse, setRawResponse] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
+  useEffect(() => {
+    const stored = localStorage.getItem("rawResponse")
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        const dataOnly = parsed?.data ?? []
+        setRawResponse(JSON.stringify(dataOnly, null, 2))  // pretty print
+      } catch (e) {
+        console.error("Failed to parse rawResponse:", e)
+      }
+    }
+  }, [])
+
   const handleClearRawResponse = () => {
-    onRawResponseChange(" ")
+    setRawResponse(" ")
   }
 
   const handleCopy = () => {
@@ -70,7 +78,7 @@ export default function VisualizationPanel({
             ) : rawResponse ? (
               <pre className="text-sm text-muted-foreground whitespace-pre-wrap">{rawResponse}</pre>
             ) : (
-              <p className="text-sm text-muted-foreground">Click the purple button to fetch raw data.</p>
+              <p className="text-sm text-muted-foreground">Waiting for some time.</p>
             )}
           </div>
         </CardContent>
