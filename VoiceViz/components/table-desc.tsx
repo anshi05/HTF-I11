@@ -82,14 +82,12 @@ export function TableDesc () {
   return (
     <div className="min-h-screen bg-transparentp-8">
       <div className="max-w-4xl mx-auto">
+      <h1 className='font-semibold text-2xl text-white'>Tables Description</h1>
+        <div className="mb-6 mt-3 text-white flex">
         
-        <div className="mb-6 bg-[#7E22CE]">
-          <label htmlFor="table-select" className="block text-sm font-medium text-gray-700 mb-1">
-            Select a table:
-          </label>
           <select
             id="table-select"
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border bg-white text-gray-800"
             value={selectedTable.name}
             onChange={handleTableChange}
           >
@@ -101,22 +99,22 @@ export function TableDesc () {
           </select>
         </div>
 
-        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <div className="bg-purple-700 shadow-md rounded-lg overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800">{selectedTable.name}</h2>
-            <p className="text-sm text-gray-500 mt-1">Columns and descriptions</p>
+            <h2 className="text-xl font-semibold text-white">{selectedTable.name}</h2>
+            <p className="text-sm text-gray-200 mt-1">Columns and descriptions</p>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-purple-100 text-purple-800 font-semibold">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs uppercase tracking-wider">
                     Field Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs uppercase tracking-wider">
                     Data Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs uppercase tracking-wider">
                     Description
                   </th>
                 </tr>
@@ -143,4 +141,3 @@ export function TableDesc () {
     </div>
   );
 };
-

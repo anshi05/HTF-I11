@@ -251,6 +251,7 @@ export function ShowTable() {
             <p className="text-sm text-gray-500">No tables found.</p>
           )}
         </div>
+        
       </CardContent>
     </Card>
 
