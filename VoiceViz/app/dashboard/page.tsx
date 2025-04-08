@@ -28,10 +28,18 @@ export default function Dashboard() {
     }
 
     // Check if database is connected
-    const dbConnection = localStorage.getItem("dbConnection")
-    if (dbConnection) {
-      setDbConnected(true)
+    const checkConnection = () => {
+      const dbConnection = localStorage.getItem("dbConnection")
+      setDbConnected(!!dbConnection)
     }
+
+    checkConnection() // Initial check
+
+    // Keep checking every 2 seconds for any update
+    const interval = setInterval(checkConnection, 2000)
+
+    // Clean up interval on unmount
+    return () => clearInterval(interval)
 
     if (!searchParams.get("tab")) {
       router.replace("/dashboard?tab=connect")
@@ -62,10 +70,20 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">
-              Welcome back, {userName}! Convert your voice to SQL queries and visualize your data.
-            </p>
+                <div>
+               <h1 className="text-3xl font-bold">Dashboard</h1>
+               <div className="flex items-center gap-1 pt-1">
+     <span className={`w-3 h-3 rounded-full ${dbConnected ? 'bg-green-500' : 'bg-red-500'}`}></span>
+     <span className="text-sm font-medium text-muted-foreground">
+       {dbConnected ? 'Connected' : 'Not Connected'}
+     </span>
+   </div>
+               <p className="text-muted-foreground pt-1">
+                 Welcome back, {userName}! Convert your voice to SQL queries and visualize your data.
+               </p>
+             </div>
+             
+          
           </motion.div>
   
           <Tabs value={tab} onValueChange={handleTabChange} className="w-full">

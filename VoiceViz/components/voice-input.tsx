@@ -76,7 +76,31 @@ export function VoiceInput({
     }, []);
 
    
-
+    const checkSqlInjection = async (sqlQuery: string) => {
+      setChecking(true);
+      try {
+        const response = await fetch("https://m-s-973a.onrender.com/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sqlQuery, model }),
+        });
+    
+        const data = await response.json();
+        console.log("SQL Injection API Response:", data);
+    
+        const isMalicious = data.prediction > 0.5;
+        const message = isMalicious
+          ? "⚠️ SQLi risk detected"
+          : "✅ Query is safe";
+    
+        setResult({ isMalicious, message });
+      } catch (err) {
+        console.error("Error checking SQL injection:", err);
+        setResult({ isMalicious: false, message: "Error during check" });
+      } finally {
+        setChecking(false);
+      }
+    };
 
     
   const handleStartRecording = async () => {
@@ -147,6 +171,8 @@ export function VoiceInput({
 
       if (data.transcription) {
         setQuery(data.transcription);
+
+        await convertToSQL(data.transcription, language);
       } else {
         setError(
           "Could not transcribe audio. Please try again or use text input."
@@ -179,6 +205,7 @@ export function VoiceInput({
 
       if (data.sqlQuery) {
         setSqlQuery(data.sqlQuery);
+        console.log(sqlQuery);
         toast({
           title: "Query generated",
           description: "Your voice has been converted to SQL successfully.",
@@ -422,13 +449,26 @@ export function VoiceInput({
           <Textarea
         placeholder="Enter your SQL query here (e.g., 'Select * from users;')"
         className="min-h-[120px]"
-        value={query}
+        value={sqlQuery}
         onChange={handleQueryChange}
       />
 
       {showWarning && (
         <p className="text-red-600 font-medium">Please change the query to enable execution.</p>
       )}
+        <Button
+  variant="outline"
+  onClick={() => checkSqlInjection(sqlQuery)}
+  disabled={!sqlQuery || checking}
+  className="mb-4 w-full"
+>
+  {checking ? (
+    <>
+      <Loader2 className="animate-spin mr-2 h-4 w-4" />
+      Checking...
+    </>
+  ) : result ? result.message : "Check SQL Injection"}
+</Button>
           
           {showPopup && !hasDismissedPopup && (
   <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
@@ -470,6 +510,8 @@ export function VoiceInput({
 
 
           </TabsContent>
+
+        
             
           <Button
               className="w-full"
