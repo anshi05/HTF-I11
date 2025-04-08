@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
@@ -6,6 +6,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Switch } from "@/components/ui/switch"; // Assuming you have a Switch component
 
 const formSchema = z.object({
   type: z.string().min(1, { message: "Please select a database type." }),
@@ -25,6 +26,7 @@ export function ShowTable() {
   const [error, setError] = useState<string | null>(null);
   const [query] = useState("SHOW Tables;");
   const [queryPostgres] = useState("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';");
+  const [developerMode, setDeveloperMode] = useState(false); // Toggle state for developer mode
 
   const dbConnection = JSON.parse(localStorage.getItem("dbConnection") || "{}");
 
@@ -141,9 +143,16 @@ export function ShowTable() {
     <Card className="border border-border/50 h-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Show Tables</CardTitle>
-        <Button onClick={handleManualLoad} disabled={isLoading || isSubmitting || isProcessing}>
-          {isLoading || isSubmitting || isProcessing ? "Loading..." : "Load Tables"}
-        </Button>
+        <div className="flex items-center gap-4">
+          <span>Developer Mode</span>
+          <Switch
+            checked={developerMode}
+            onCheckedChange={(checked) => setDeveloperMode(checked)}
+          />
+          <Button onClick={handleManualLoad} disabled={isLoading || isSubmitting || isProcessing}>
+            {isLoading || isSubmitting || isProcessing ? "Loading..." : "Load Tables"}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="h-[400px] overflow-auto border p-2 bg-gray-900">
@@ -153,12 +162,22 @@ export function ShowTable() {
                 <Loader />
               </div>
             </div>
-          ) : rawResponse ? (
-            <pre className="text-sm text-white whitespace-pre-wrap">
-              {rawResponse}
-            </pre>
+          ) : developerMode ? (
+            rawResponse ? (
+              <pre className="text-sm text-white whitespace-pre-wrap">
+                {rawResponse}
+              </pre>
+            ) : (
+              <p className="text-sm text-gray-500">No data available.</p>
+            )
           ) : (
-            <p className="text-sm text-gray-500">No data available.</p>
+            <div className="flex items-center justify-center h-full">
+              <img
+                src="/icon.png" // Replace with your image path
+                alt="Placeholder"
+                className="max-w-full max-h-full"
+              />
+            </div>
           )}
         </div>
       </CardContent>

@@ -35,6 +35,11 @@ export function AppSidebar() {
       href: "/dashboard/visualizations",
     },
     {
+      title: "Extracted Raw Data",
+      icon: FileText,
+      href: "/dashboard/raw-data",
+    },
+    {
       title: "Settings",
       icon: Settings,
       href: "/settings",
