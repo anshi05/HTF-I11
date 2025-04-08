@@ -127,7 +127,7 @@ export default function DataVisualization() {
       <div className="flex justify-center mt-8">
         <Link href="/dashboard?tab=query">
           <button className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/80 transition-all">
-            Speak Your Query
+          Check Another Visualization
           </button>
         </Link>
       </div>

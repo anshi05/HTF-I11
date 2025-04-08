@@ -20,13 +20,13 @@ import {
 
 export function DataCharts() {
   const [images, setImages] = useState<string[]>([])
+  const [summary, setSummary] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [shouldPromptQuery, setShouldPromptQuery] = useState(false)
 
   useEffect(() => {
     const rawResponse = localStorage.getItem("rawResponse")
-    console.log("1")
     if (!rawResponse) {
       setShouldPromptQuery(true)
       return
@@ -53,36 +53,39 @@ export function DataCharts() {
           body: JSON.stringify({ data }),
         })
 
-        console.log("res",res);
-
         if (!res.ok) {
           throw new Error("Failed to fetch ZIP file.")
         }
 
         const zipBlob = await res.blob()
         const zip = await JSZip.loadAsync(zipBlob)
-        console.log("zip",zip);
+
         const imagePromises = Object.keys(zip.files)
           .filter((fileName) => fileName.match(/\.(png|jpe?g|gif)$/i))
           .map(async (fileName) => {
             const fileData = await zip.files[fileName].async("blob")
-            
             return URL.createObjectURL(fileData)
           })
 
         const imageUrls = await Promise.all(imagePromises)
-        console.log("imageurls",imageUrls);
         setImages(imageUrls)
 
-        if (imageUrls.length === 0) {
-          setError("No images found in the ZIP file.")
-        } else {
-          setError(null) // Clear any old error
+        const txtFile = Object.keys(zip.files).find(name => name.endsWith(".txt"))
+        if (txtFile) {
+          const summaryText = await zip.files[txtFile].async("text")
+          setSummary(summaryText)
         }
-      }  catch (err: any) {
+
+        if (imageUrls.length === 0 && !txtFile) {
+          setError("No images or summary found in the ZIP file.")
+        } else {
+          setError(null)
+        }
+      } catch (err: any) {
         console.error("Image unzip error:", err)
-        setImages([]) // Ensure images are cleared
-     
+        setImages([])
+        setSummary(null)
+        setError("Failed to extract data from ZIP.")
       } finally {
         setLoading(false)
       }
@@ -127,7 +130,7 @@ export function DataCharts() {
         <CardContent className="p-6 flex flex-wrap justify-center items-center gap-4">
           {shouldPromptQuery && <p className="text-muted-foreground">Run Query</p>}
           {loading && <p className="text-muted-foreground">Generating charts...</p>}
-          {/* {error && images.length === 0 && <p className="text-red-500">{error}</p>} */}
+          {error && images.length === 0 && <p className="text-red-500">{error}</p>}
           {images.length > 0 &&
             images.map((url, idx) => (
               <img
@@ -135,9 +138,15 @@ export function DataCharts() {
                 src={url}
                 alt={`Generated Chart ${idx + 1}`}
                 className="w-full sm:w-[95%] lg:w-[1000px] max-h-[700px] object-contain rounded-xl border shadow-lg"
-
               />
             ))}
+
+          {summary && (
+            <div className="w-full mt-6 p-4 bg-muted rounded-xl border">
+              <h3 className="text-lg font-semibold mb-2 text-primary">AI Analysis</h3>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{summary}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </TooltipProvider>

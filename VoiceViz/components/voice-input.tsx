@@ -155,7 +155,7 @@ export function VoiceInput({
       const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
       const formData = new FormData();
       formData.append("audio", audioBlob, "recording.wav");
-
+      formData.append("language", language);
 
       // Send to your backend API
       const response = await fetch("/api/speech-to-text", {
@@ -163,6 +163,7 @@ export function VoiceInput({
         body: formData,
       });
 
+        console.log("response",response);
       if (!response.ok) {
         throw new Error("Speech-to-text processing failed");
       }
@@ -392,6 +393,22 @@ export function VoiceInput({
           </TabsList>
 
           <TabsContent value="voice" className="space-y-4">
+            <div className="mb-4 w-full">
+              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                Select Language
+              </label>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="w-full p-2 border rounded-md dark:bg-gray-800 dark:text-white"
+              >
+                {languages.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.label}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="flex flex-col items-center justify-center p-8">
               <div className="relative mb-6">
                 <div

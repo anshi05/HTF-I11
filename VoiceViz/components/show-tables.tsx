@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 import { toast } from "@/components/ui/use-toast";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRef } from "react";
 
 const formSchema = z.object({
   type: z.string().min(1, { message: "Please select a database type." }),
@@ -21,13 +21,11 @@ export function ShowTable() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [query] = useState("SHOW Tables;");
   const [queryPostgres] = useState("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';");
-  const hasInitialized = useRef(false);
 
-  // Load default form values from localStorage
   const dbConnection = JSON.parse(localStorage.getItem("dbConnection") || "{}");
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -98,18 +96,17 @@ export function ShowTable() {
         setError("Missing DB connection details.");
         return;
       }
-     
+
       const bodyPayload = {
         ...dbConnection,
         query: dbConnection.type?.toLowerCase() === "mysql" ? query : queryPostgres,
       };
-      
-      const response = await fetch("http://localhost:3000/api/database/execute", {
+
+      const response = await fetch("/api/database/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bodyPayload),
       });
-      
 
       const data = await response.json();
 
@@ -130,26 +127,23 @@ export function ShowTable() {
     }
   };
 
-  useEffect(() => {
-    if (hasInitialized.current) return;
-    hasInitialized.current = true;
-  
-    const init = async () => {
-      const success = await onConnect(form.getValues());
-      if (success) {
-        await ExecuteShow();
-      } else {
-        setIsLoading(false);
-      }
-    };
-  
-    init();
-  }, []);
-  
+  const handleManualLoad = async () => {
+    setIsLoading(true);
+    const success = await onConnect(form.getValues());
+    if (success) {
+      await ExecuteShow();
+    } else {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Card className="border border-border/50 h-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Show Tables</CardTitle>
+        <Button onClick={handleManualLoad} disabled={isLoading || isSubmitting || isProcessing}>
+          {isLoading || isSubmitting || isProcessing ? "Loading..." : "Load Tables"}
+        </Button>
       </CardHeader>
       <CardContent>
         <div className="h-[400px] overflow-auto border p-2 bg-gray-900">

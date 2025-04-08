@@ -20,9 +20,10 @@ export async function POST(req: Request) {
     // Get the audio data from the request
     const formData = await req.formData();
     const audioFile = formData.get("audio") as File;
-
+    const languageCode = formData.get("language") as string;
+    console.log("languageCode",languageCode);
     if (!audioFile) {
-      return NextResponse.json({ error: "No audio file provided" }, { status: 400 });
+      return NextResponse.json({ error: "Audio file is required" }, { status: 400 });
     }
 
     // Convert the file to a buffer
@@ -35,8 +36,8 @@ export async function POST(req: Request) {
     };
 
     const config: protos.google.cloud.speech.v1.IRecognitionConfig = {
-      encoding: "WEBM_OPUS", // Update this if your audio format is different
-      languageCode: "en-US",
+      encoding: "WEBM_OPUS",
+      languageCode: languageCode, // Dynamic language from frontend
     };
 
     const request: protos.google.cloud.speech.v1.IRecognizeRequest = {
