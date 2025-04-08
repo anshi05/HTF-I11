@@ -10,7 +10,7 @@ export default function Home() {
       <Navbar />
       <main>
         <HeroSection />
-        <DemoVideo />
+        <DemoVideo youtubeUrl="https://youtu.be/2kCTmlU0RPg?si=tQEO1Z-WnKDMxY2l"/>
         <Testimonials />
       </main>
       <Footer />
