@@ -79,7 +79,7 @@ export function AIChatAssistant() {
             role: "user",
             parts: [
               {
-                text: message,
+                text: message+ " in 3 lines",
               },
             ],
           },
@@ -110,7 +110,8 @@ export function AIChatAssistant() {
         throw new Error(`Gemini API error: ${response.status} - ${JSON.stringify(data)}`)
       }
 
-      const rawGeminiReply = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "I'm sorry, I didn't understand that."
+      let rawGeminiReply = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "I'm sorry, I didn't understand that."
+      rawGeminiReply= filterGeminiResponse(rawGeminiReply);
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: rawGeminiReply },
