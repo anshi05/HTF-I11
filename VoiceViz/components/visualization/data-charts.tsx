@@ -94,6 +94,43 @@ export function DataCharts() {
     fetchAndUnzipImages()
   }, [])
 
+  const handleDownloadReport = async () => {
+    const rawResponse = localStorage.getItem("rawResponse")
+  
+    if (!rawResponse) {
+      alert("No raw response found. Please run a query first.")
+      return
+    }
+  
+    try {
+      const parsed = JSON.parse(rawResponse)
+      const res = await fetch("http://127.0.0.1:8000/generate-report", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ data: parsed.data }),
+      })
+  
+      if (!res.ok) {
+        throw new Error("Failed to generate report.")
+      }
+  
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = "business_report.pdf"
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    } catch (error) {
+      console.error("Report download failed:", error)
+      alert("Failed to download report. Please try again.")
+    }
+  }
+  
+
   return (
     <TooltipProvider>
       <Card className="shadow-lg border-border max-w-4xl mx-auto mt-8">
@@ -107,6 +144,11 @@ export function DataCharts() {
               <CardDescription>
                 These charts are AI-generated based on your uploaded data.
               </CardDescription>
+              <div className="mt-4">
+    <Button variant="default" className="text-white" onClick={handleDownloadReport}>
+      Download Report
+    </Button>
+  </div>
             </div>
             <div>
               <UITooltip>
