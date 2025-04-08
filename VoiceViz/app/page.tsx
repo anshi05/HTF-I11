@@ -2,6 +2,7 @@ import { HeroSection } from "@/components/hero-section"
 import { Footer } from "@/components/footer"
 import { Navbar } from "@/components/navbar"
 import { DemoVideo } from "../components/demo-video"
+import { Testimonials } from "../components/testimonials"
 
 export default function Home() {
   return (
@@ -10,6 +11,7 @@ export default function Home() {
       <main>
         <HeroSection />
         <DemoVideo />
+        <Testimonials />
       </main>
       <Footer />
     </div>
