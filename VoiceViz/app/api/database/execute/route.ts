@@ -19,7 +19,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-   
+    let result;
     // Execute query based on the database type
     switch (type.toLowerCase()) {
       case "mysql":
