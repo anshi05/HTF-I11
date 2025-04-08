@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState , useEffect} from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
@@ -30,7 +30,9 @@ export function ShowTable() {
   const [developerMode, setDeveloperMode] = useState(false); // Toggle state for developer mode
 
   const dbConnection = JSON.parse(localStorage.getItem("dbConnection") || "{}");
+  const [tableNames, setTableNames] = useState<string[]>([]);
 
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -42,6 +44,27 @@ export function ShowTable() {
       password: dbConnection.password || "",
     },
   });
+
+  useEffect(() => {
+    if (rawResponse) {
+      const extractedTables = extractTableNames(rawResponse);
+      setTableNames(extractedTables);
+    }
+  }, [rawResponse]);
+  const extractTableNames = (text: string): string[] => {
+    const tableNames: string[] = [];
+    const regex = /"TABLE_NAME"\s*:\s*"([^"]+)"/g;
+    let match;
+    
+    while ((match = regex.exec(text)) !== null) {
+      if (match[1]) {
+        tableNames.push(match[1]);
+      }
+    }
+    
+    // Remove duplicates
+    return [...new Set(tableNames)];
+  };
 
   const onConnect = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
@@ -181,7 +204,10 @@ export function ShowTable() {
             checked={developerMode}
             onCheckedChange={(checked) => setDeveloperMode(checked)}
           />
-          <Button onClick={handleManualLoad} disabled={isLoading || isSubmitting || isProcessing}>
+          <Button
+            onClick={handleManualLoad}
+            disabled={isLoading || isSubmitting || isProcessing}
+          >
             {isLoading || isSubmitting || isProcessing ? "Loading..." : "Load Tables"}
           </Button>
         </div>
@@ -196,19 +222,37 @@ export function ShowTable() {
             </div>
           ) : developerMode ? (
             rawResponse ? (
-              <pre className="text-sm text-white whitespace-pre-wrap">
-                {rawResponse}
-              </pre>
+              <div>
+                <pre className="text-sm text-white whitespace-pre-wrap">
+                  {rawResponse}
+                </pre>
+                <div className="mt-4 p-4 bg-gray-800 rounded">
+                  <h3 className="font-bold text-white mb-2">Extracted Table Names:</h3>
+                  <ul className="list-disc pl-5 text-white">
+                    {tableNames.map((table, index) => (
+                      <li key={index}>{table}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             ) : (
               <p className="text-sm text-gray-500">No data available.</p>
             )
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <TableDesc />
+          ) : tableNames.length > 0 ? (
+            <div className="text-white">
+              <h3 className="font-bold mb-2">Available Tables:</h3>
+              <ul className="list-disc pl-5">
+                {tableNames.map((table, index) => (
+                  <li key={index}>{table}</li>
+                ))}
+              </ul>
             </div>
+          ) : (
+            <p className="text-sm text-gray-500">No tables found.</p>
           )}
         </div>
       </CardContent>
     </Card>
+
   );
 }

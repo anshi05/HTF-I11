@@ -2,7 +2,7 @@
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Download, Share2, Info, Copy, Trash2 } from "lucide-react"
+import { Download, Copy, Trash2 } from "lucide-react"
 import { Loader } from "@/components/ui/loader"
 
 export default function VisualizationPanel({
@@ -43,36 +43,38 @@ export default function VisualizationPanel({
   }
 
   return (
-    <Card className="border border-border/50 h-full  items-center  justify-center ">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Raw Data</CardTitle>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={handleDownload}>
-            <Download className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={handleCopy}>
-            <Copy className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={handleClearRawResponse}>
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="h-[400px] overflow-auto border p-2 bg-gray-900">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="h-6 w-6 animate-spin text-white">
-                <Loader />
+    <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-3xl shadow-xl border border-border/50 bg-card">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg">Raw Data</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={handleDownload}>
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={handleCopy}>
+              <Copy className="h-4 w-4" />
+            </Button>
+            <Button variant="destructive" size="icon" onClick={handleClearRawResponse}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px] overflow-auto rounded-md border bg-muted p-4">
+            {isLoading ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="h-6 w-6 animate-spin text-primary">
+                  <Loader />
+                </div>
               </div>
-            </div>
-          ) : rawResponse ? (
-            <pre className="text-sm text-white whitespace-pre-wrap">{rawResponse}</pre>
-          ) : (
-            <p className="text-sm text-gray-500">Click the purple button to fetch raw data.</p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            ) : rawResponse ? (
+              <pre className="text-sm text-muted-foreground whitespace-pre-wrap">{rawResponse}</pre>
+            ) : (
+              <p className="text-sm text-muted-foreground">Click the purple button to fetch raw data.</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
