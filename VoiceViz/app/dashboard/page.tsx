@@ -14,8 +14,10 @@ import { useAuth } from "@/components/auth-provider"
 
 export default function Dashboard() {
   const router = useRouter()
+  // const { status } = useAuth()
   const [dbConnected, setDbConnected] = useState(false)
   const [rawResponse, setRawResponse] = useState<string | null>(null)
+
   const users = JSON.parse(localStorage.getItem("users") || "[]")
   const userName = users.length > 0 ? users[0].name : "User";
 
@@ -24,11 +26,18 @@ export default function Dashboard() {
       router.push("/login")
     }
 
-    // Check if database is connected
-    const dbConnection = localStorage.getItem("dbConnection")
-    if (dbConnection) {
-      setDbConnected(true)
+    const checkConnection = () => {
+      const dbConnection = localStorage.getItem("dbConnection")
+      setDbConnected(!!dbConnection)
     }
+
+    checkConnection() // Initial check
+
+    // Keep checking every 2 seconds for any update
+    const interval = setInterval(checkConnection, 2000)
+
+    // Clean up interval on unmount
+    return () => clearInterval(interval)
   }, [status, router])
 
   if (status === "loading") {
@@ -46,25 +55,32 @@ export default function Dashboard() {
       <SidebarInset>
         <main className="flex-1 p-4">
           <motion.div
-            className="mb-6"
+            className="mb-6 flex items-center justify-between"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">
-              Welcome back, {userName}! Convert your voice to SQL queries and visualize your data.
-            </p>
+            <div>
+              <h1 className="text-3xl font-bold">Dashboard</h1>
+              <div className="flex items-center gap-1 pt-1">
+    <span className={`w-3 h-3 rounded-full ${dbConnected ? 'bg-green-500' : 'bg-red-500'}`}></span>
+    <span className="text-sm font-medium text-muted-foreground">
+      {dbConnected ? 'Connected' : 'Not Connected'}
+    </span>
+  </div>
+              <p className="text-muted-foreground pt-1">
+                Welcome back, {userName}! Convert your voice to SQL queries and visualize your data.
+              </p>
+            </div>
+            
           </motion.div>
-  
+
           <Tabs defaultValue={dbConnected ? "query" : "connect"} className="w-full">
             <TabsList className="mb-6">
               <TabsTrigger value="connect">Database Connection</TabsTrigger>
-              <TabsTrigger value="query">
-                Voice to SQL
-              </TabsTrigger>
+              <TabsTrigger value="query">Voice to SQL</TabsTrigger>
             </TabsList>
-  
+
             <TabsContent value="connect">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <motion.div
@@ -83,34 +99,26 @@ export default function Dashboard() {
                   <h2 className="text-xl font-semibold mb-4">Why Connect Your Database?</h2>
                   <ul className="space-y-3">
                     <li className="flex items-start">
-                      <span className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center mr-2 mt-0.5">
-                        1
-                      </span>
+                      <span className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center mr-2 mt-0.5">1</span>
                       <span>Securely connect to MySQL, PostgreSQL, or MongoDB databases</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center mr-2 mt-0.5">
-                        2
-                      </span>
+                      <span className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center mr-2 mt-0.5">2</span>
                       <span>Convert natural language and voice to SQL queries specific to your schema</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center mr-2 mt-0.5">
-                        3
-                      </span>
+                      <span className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center mr-2 mt-0.5">3</span>
                       <span>Visualize your actual data with charts and graphs</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center mr-2 mt-0.5">
-                        4
-                      </span>
+                      <span className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center mr-2 mt-0.5">4</span>
                       <span>Your credentials are encrypted and stored securely</span>
                     </li>
                   </ul>
                 </motion.div>
               </div>
             </TabsContent>
-  
+
             <TabsContent value="query">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <motion.div

@@ -145,7 +145,7 @@ export function DatabaseConnection() {
                 name="port"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Port (Optional)</FormLabel>
+                    <FormLabel>Port</FormLabel>
                     <FormControl>
                       <Input placeholder="3306" {...field} />
                     </FormControl>
@@ -175,7 +175,7 @@ export function DatabaseConnection() {
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username (Optional)</FormLabel>
+                    <FormLabel>Username</FormLabel>
                     <FormControl>
                       <Input placeholder="root" {...field} />
                     </FormControl>
@@ -189,7 +189,7 @@ export function DatabaseConnection() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password (Optional)</FormLabel>
+                    <FormLabel>Password</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
