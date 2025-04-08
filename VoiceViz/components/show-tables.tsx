@@ -24,6 +24,7 @@ export function ShowTable() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query] = useState("SHOW Tables;");
+  const [queryPostgres] = useState("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';");
   const hasInitialized = useRef(false);
 
   // Load default form values from localStorage
@@ -97,12 +98,18 @@ export function ShowTable() {
         setError("Missing DB connection details.");
         return;
       }
-
+     
+      const bodyPayload = {
+        ...dbConnection,
+        query: dbConnection.type?.toLowerCase() === "mysql" ? query : queryPostgres,
+      };
+      
       const response = await fetch("http://localhost:3000/api/database/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...dbConnection, query }),
+        body: JSON.stringify(bodyPayload),
       });
+      
 
       const data = await response.json();
 
