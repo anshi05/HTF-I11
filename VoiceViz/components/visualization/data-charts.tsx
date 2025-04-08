@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import JSZip from "jszip"
 import {
   Card,
   CardContent,
@@ -17,56 +18,77 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-export  function DataCharts() {
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
+export function DataCharts() {
+  const [images, setImages] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [shouldPromptQuery, setShouldPromptQuery] = useState(false)
 
   useEffect(() => {
     const rawResponse = localStorage.getItem("rawResponse")
-
+    console.log("1")
     if (!rawResponse) {
       setShouldPromptQuery(true)
       return
     }
 
-    try {
-      const parsedResponse = JSON.parse(rawResponse)
-      const data = parsedResponse.data
+    const fetchAndUnzipImages = async () => {
+      try {
+        const parsedResponse = JSON.parse(rawResponse)
+        const data = parsedResponse.data
 
-      if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== "object") {
-        setError("Invalid data format.")
-        return
-      }
+        if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== "object") {
+          setError("Invalid data format.")
+          return
+        }
 
-      setShouldPromptQuery(false)
-      setLoading(true)
+        setLoading(true)
+        setShouldPromptQuery(false)
 
-      // Call the API with the parsed data
-      fetch("http://localhost:3001/generate-chart-code?chartType=bar&chartTitle=Auto Chart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ success: true, data }),
-      })
-        .then(async (res) => {
-          if (!res.ok) throw new Error("Failed to generate chart.")
-          const blob = await res.blob()
-          const url = URL.createObjectURL(blob)
-          setImageUrl(url)
+        const res = await fetch("http://127.0.0.1:8000/generate-graphs", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ data }),
         })
-        .catch(async (err) => {
-          const text = await err.response?.text?.();
-          console.error("Error from backend:", text || err.message);
-          setError("Failed to generate chart. Check server logs for details.");
-        })        
-        .finally(() => setLoading(false))
-    } catch (err) {
-      console.error("Error parsing rawResponse:", err)
-      setError("Error parsing data from localStorage.")
+
+        console.log("res",res);
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch ZIP file.")
+        }
+
+        const zipBlob = await res.blob()
+        const zip = await JSZip.loadAsync(zipBlob)
+        console.log("zip",zip);
+        const imagePromises = Object.keys(zip.files)
+          .filter((fileName) => fileName.match(/\.(png|jpe?g|gif)$/i))
+          .map(async (fileName) => {
+            const fileData = await zip.files[fileName].async("blob")
+            
+            return URL.createObjectURL(fileData)
+          })
+
+        const imageUrls = await Promise.all(imagePromises)
+        console.log("imageurls",imageUrls);
+        setImages(imageUrls)
+
+        if (imageUrls.length === 0) {
+          setError("No images found in the ZIP file.")
+        } else {
+          setError(null) // Clear any old error
+        }
+      }  catch (err: any) {
+        console.error("Image unzip error:", err)
+        setImages([]) // Ensure images are cleared
+     
+      } finally {
+        setLoading(false)
+      }
     }
+
+    fetchAndUnzipImages()
   }, [])
 
   return (
@@ -80,7 +102,7 @@ export  function DataCharts() {
                 Chart Visualization
               </CardTitle>
               <CardDescription>
-                This is a responsive chart rendered using AI-generated Python code.
+                These charts are AI-generated based on your uploaded data.
               </CardDescription>
             </div>
             <div>
@@ -95,24 +117,27 @@ export  function DataCharts() {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
-                  <p>This chart is generated using AI from your raw data.</p>
+                  <p>These charts are automatically generated from the raw data using AI.</p>
                 </TooltipContent>
               </UITooltip>
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className="p-6 flex justify-center items-center min-h-[300px]">
+        <CardContent className="p-6 flex flex-wrap justify-center items-center gap-4">
           {shouldPromptQuery && <p className="text-muted-foreground">Run Query</p>}
-          {loading && <p className="text-muted-foreground">Generating chart...</p>}
-          {error && <p className="text-red-500">{error}</p>}
-          {imageUrl && (
-            <img
-              src={imageUrl}
-              alt="Generated Chart"
-              className="w-full h-auto max-h-[500px] object-contain rounded-lg border shadow-md"
-            />
-          )}
+          {loading && <p className="text-muted-foreground">Generating charts...</p>}
+          {/* {error && images.length === 0 && <p className="text-red-500">{error}</p>} */}
+          {images.length > 0 &&
+            images.map((url, idx) => (
+              <img
+                key={idx}
+                src={url}
+                alt={`Generated Chart ${idx + 1}`}
+                className="w-full sm:w-[95%] lg:w-[1000px] max-h-[700px] object-contain rounded-xl border shadow-lg"
+
+              />
+            ))}
         </CardContent>
       </Card>
     </TooltipProvider>

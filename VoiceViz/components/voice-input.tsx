@@ -449,7 +449,7 @@ export function VoiceInput({
           <Textarea
         placeholder="Enter your SQL query here (e.g., 'Select * from users;')"
         className="min-h-[120px]"
-        value={sqlQuery}
+        value={query}
         onChange={handleQueryChange}
       />
 
