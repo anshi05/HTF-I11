@@ -281,6 +281,7 @@ export function VoiceInput({
         // Log the response in the terminal
 
         localStorage.setItem("Query", query);
+        window.location.href = "/dashboard/visualizations";
 
         // window.location.href = "http://localhost:3000/dashboard/visualizations";
       } else {
