@@ -75,33 +75,39 @@ export function VoiceInput({
       }
     }, []);
 
+    const [check, setCheck] = useState(false);
    
-    const checkSqlInjection = async (sqlQuery: string) => {
-      setChecking(true);
-      try {
-        const response = await fetch("https://m-s-973a.onrender.com/predict", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sqlQuery, model }),
-        });
-    
-        const data = await response.json();
-        console.log("SQL Injection API Response:", data);
-    
-        const isMalicious = data.prediction > 0.5;
-        const message = isMalicious
-          ? "⚠️ SQLi risk detected"
-          : "✅ Query is safe";
-    
-        setResult({ isMalicious, message });
-      } catch (err) {
-        console.error("Error checking SQL injection:", err);
-        setResult({ isMalicious: false, message: "Error during check" });
-      } finally {
-        setChecking(false);
-      }
-    };
+  const checkSqlInjection = async (query: string) => {
+    setChecking(true);
+    try {
+      const response = await fetch("https://m-s-973a.onrender.com/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, model }),
+      });
+  
+      const data = await response.json();
+      console.log("SQL Injection API Response:", data);
+  
+      const isMalicious = data.prediction > 0.5;
+      const message = isMalicious
+        ? "⚠️ SQLi risk detected"
+        : "✅ Query is safe";
+  
+      setResult({ isMalicious, message });
 
+      if (isMalicious) {
+        setCheck(true);
+        window.alert("⚠️ WARNING: Using this query can be harmful to your database.");
+      }
+    } catch (err) {
+      console.error("Error checking SQL injection:", err);
+      setResult({ isMalicious: false, message: "Error during check" });
+    } finally {
+      setChecking(false);
+    }
+  };
+  
     
   const handleStartRecording = async () => {
     setError(null);
@@ -480,10 +486,10 @@ export function VoiceInput({
       {showWarning && (
         <p className="text-red-600 font-medium">Please change the query to enable execution.</p>
       )}
-        <Button
+          <Button
   variant="outline"
-  onClick={() => checkSqlInjection(sqlQuery)}
-  disabled={!sqlQuery || checking}
+  onClick={() => checkSqlInjection(query)}
+  disabled={ checking}
   className="mb-4 w-full"
 >
   {checking ? (
@@ -542,7 +548,7 @@ export function VoiceInput({
              <Button
               className="w-full"
               onClick={handleSubmitQuery}
-              disabled={!query.trim() || isProcessing||!canRunQuery}
+              disabled={!query.trim() || isProcessing||!canRunQuery ||check}
             >
               {isProcessing ? (
                 <>
