@@ -44,7 +44,7 @@ export function TableDesc() {
         }
         tablesMap[item.TABLE_NAME].push({
           name: item.COLUMN_NAME,
-          description: item.DESCRIPTION // Using the correct field name
+          DESCRIPTION: item.DESCRIPTION // Using the correct field name
         });
       });
 
@@ -130,7 +130,7 @@ export function TableDesc() {
                       {field.name}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {field.description}
+                      {field.DESCRIPTION}
                     </td>
                   </tr>
                 ))}
