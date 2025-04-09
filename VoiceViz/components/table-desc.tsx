@@ -1,10 +1,9 @@
-"use client"
-import { useState } from 'react';
+"use client";
+import { useEffect, useState } from "react";
 
 interface Field {
   name: string;
-  type: string;
-  description: string;
+  DESCRIPTION: string;
 }
 
 interface TableData {
@@ -12,54 +11,58 @@ interface TableData {
   fields: Field[];
 }
 
-export function TableDesc () {
-  // Sample database tables data
-  const databaseTables: TableData[] = [
-    {
-      name: 'supermarket_sales',
-      fields: [
-        { name: 'invoice_id', type: 'String', description: 'A unique code for each purchase.' },
-        { name: 'branch', type: 'String', description: 'The location of the supermarket branch.' },
-        { name: 'city', type: 'String', description: 'The city where the supermarket is located.' },
-        { name: 'customer_type', type: 'String', description: 'The type of customer (e.g., member or normal).' },
-        { name: 'gender', type: 'String', description: 'The gender of the customer.' },
-        { name: 'product_line', type: 'String', description: 'The category of product that was sold.' },
-      ],
-    },
-    {
-      name: 'customers',
-      fields: [
-        { name: 'customer_id', type: 'String', description: 'Unique identifier for the customer.' },
-        { name: 'name', type: 'String', description: 'Full name of the customer.' },
-        { name: 'email', type: 'String', description: 'Contact email address.' },
-        { name: 'join_date', type: 'Date', description: 'When the customer first registered.' },
-      ],
-    },
-    {
-      name: 'products',
-      fields: [
-        { name: 'product_id', type: 'String', description: 'Unique product identifier.' },
-        { name: 'name', type: 'String', description: 'Product display name.' },
-        { name: 'price', type: 'Number', description: 'Current selling price.' },
-        { name: 'stock', type: 'Number', description: 'Quantity available in inventory.' },
-      ],
-    },
-  ];
+interface RawTableData {
+  TABLE_NAME: string;
+  COLUMN_NAME: string;
+  DESCRIPTION: string; // Note the uppercase field name
+}
 
-  const [selectedTable, setSelectedTable] = useState<TableData>(databaseTables[0]);
+export function TableDesc() {
+  const [databaseTables, setDatabaseTables] = useState<TableData[]>([]);
+  const [selectedTable, setSelectedTable] = useState<TableData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleTableChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  useEffect(() => {
     try {
-      const table = databaseTables.find(t => t.name === e.target.value);
-      if (!table) {
-        throw new Error(`Table ${e.target.value} not found`);
+      const storedData = localStorage.getItem("tableDescriptions");
+      if (!storedData) {
+        throw new Error("No table data found in localStorage");
       }
-      setSelectedTable(table);
-      setError(null);
+
+      const parsedData: { success: boolean; data: RawTableData[] } = JSON.parse(storedData);
+      
+      if (!parsedData.success || !parsedData.data) {
+        throw new Error("Invalid data format in localStorage");
+      }
+
+      // Transform the raw data into our TableData format
+      const tablesMap: Record<string, Field[]> = {};
+
+      parsedData.data.forEach((item) => {
+        if (!tablesMap[item.TABLE_NAME]) {
+          tablesMap[item.TABLE_NAME] = [];
+        }
+        tablesMap[item.TABLE_NAME].push({
+          name: item.COLUMN_NAME,
+          description: item.DESCRIPTION // Using the correct field name
+        });
+      });
+
+      const transformedData: TableData[] = Object.entries(tablesMap).map(([name, fields]) => ({
+        name,
+        fields
+      }));
+
+      setDatabaseTables(transformedData);
+      setSelectedTable(transformedData[0] || null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
-    }
+      setError(err instanceof Error ? err.message : "Failed to load table data");
+      }
+    }, []);
+
+  const handleTableChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const table = databaseTables.find((t) => t.name === e.target.value);
+    setSelectedTable(table || null);
   };
 
   if (error) {
@@ -68,23 +71,28 @@ export function TableDesc () {
         <div className="max-w-4xl mx-auto bg-red-50 border-l-4 border-red-500 p-4">
           <h2 className="text-xl font-bold text-red-800">Error</h2>
           <p className="text-red-600">{error}</p>
-          <button
-            onClick={() => setError(null)}
-            className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-          >
-            Try Again
-          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!selectedTable) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-xl font-bold text-gray-800">
+            {databaseTables.length === 0 ? "No tables found" : "Loading..."}
+          </h2>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-transparentp-8">
+    <div className="min-h-screen bg-transparent p-8">
       <div className="max-w-4xl mx-auto">
-      <h1 className='font-semibold text-2xl text-white'>Tables Description</h1>
+        <h1 className="font-semibold text-2xl text-white">Tables Description</h1>
         <div className="mb-6 mt-3 text-white flex">
-        
           <select
             id="table-select"
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border bg-white text-gray-800"
@@ -102,17 +110,13 @@ export function TableDesc () {
         <div className="bg-purple-700 shadow-md rounded-lg overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-white">{selectedTable.name}</h2>
-            <p className="text-sm text-gray-200 mt-1">Columns and descriptions</p>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-purple-100 text-purple-800 font-semibold">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs uppercase tracking-wider">
-                    Field Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs uppercase tracking-wider">
-                    Data Type
+                    Column
                   </th>
                   <th className="px-6 py-3 text-left text-xs uppercase tracking-wider">
                     Description
@@ -121,12 +125,9 @@ export function TableDesc () {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {selectedTable.fields.map((field, index) => (
-                  <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                  <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {field.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {field.type}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       {field.description}
@@ -140,4 +141,4 @@ export function TableDesc () {
       </div>
     </div>
   );
-};
+}

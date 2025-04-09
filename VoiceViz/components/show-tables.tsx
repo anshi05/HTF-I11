@@ -32,7 +32,29 @@ export function ShowTable() {
   const dbConnection = JSON.parse(localStorage.getItem("dbConnection") || "{}");
   const [tableNames, setTableNames] = useState<string[]>([]);
 
+  function cleanGeminiJsonResponse(responseText: string): string {
+    // First, try to extract JSON from between ```json and ```
+    const jsonBlockMatch = responseText.match(/```json([\s\S]*?)```/);
+    if (jsonBlockMatch && jsonBlockMatch[1]) {
+      return jsonBlockMatch[1].trim();
+    }
   
+    // If no ```json markers found, try extracting between ``` only
+    const genericBlockMatch = responseText.match(/```([\s\S]*?)```/);
+    if (genericBlockMatch && genericBlockMatch[1]) {
+      return genericBlockMatch[1].trim();
+    }
+  
+    // If no code blocks found at all, try to find the first {...} in the text
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return jsonMatch[0].trim();
+    }
+  
+    // If all else fails, return the original text and hope it's valid JSON
+    return responseText.trim();
+  }
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -140,7 +162,6 @@ export function ShowTable() {
       if (response.ok) {
         toast({ title: "Query executed", description: "Successfully fetched data." });
   
-        // Send the fetched data to Gemini for column descriptions
         const geminiResponse = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
           {
@@ -152,27 +173,45 @@ export function ShowTable() {
                   role: "user",
                   parts: [
                     {
-                      text: `Format the following JSON data to include a one-line description for each column:
-                      ${JSON.stringify(data)}`,
-                    },
-                  ],
-                },
-              ],
-            }),
+                      text: `Return ONLY raw JSON (without any markdown or code block formatting) with this exact structure, adding a one liner description of the each column:
+                      {
+                        "success": boolean,
+                        "data": [
+                          {
+                            "TABLE_NAME": string,
+                            "COLUMN_NAME": string,
+                            "DESCRIPTION": string
+                          }
+                        ]
+                      }
+                      
+                      Here is the data to format:
+                      ${JSON.stringify(data)}`
+                    }
+                  ]
+                }
+              ]
+            })
           }
         );
-  
+        
         const geminiData = await geminiResponse.json();
-  
+        
         if (geminiResponse.ok) {
-          const formattedData =
-            geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "No description available.";
-          setRawResponse(formattedData);
-          localStorage.setItem("rawResponse", formattedData);
+          const responseText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
+          const cleanJson = cleanGeminiJsonResponse(responseText);
+          
+          try {
+            const parsedData = JSON.parse(cleanJson);
+            setRawResponse(JSON.stringify(parsedData, null, 2)); // Pretty-printed for display
+            localStorage.setItem("tableDescriptions", cleanJson); // Store the clean version
+          } catch (e) {
+            console.error("Failed to parse cleaned JSON:", e);
+            setError("Failed to parse table descriptions.");
+          }
         } else {
           setError("Failed to get descriptions from Gemini.");
-        }
-      } else {
+        }} else {
         setError(data.error || "Failed to execute query.");
       }
     } catch (err) {
