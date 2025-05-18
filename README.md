@@ -6,7 +6,7 @@
 ### ✨ Voice to Visualization ✨
 
 Transform your voice into powerful data-driven visuals.<br>
-[Generated Report Analysis](https://drive.google.com/file/d/1ed3BI9gA2o6WtzwgG45JUJqELxeh3qQF/view?usp=sharing)
+[Live Demo](https://www.youtube.com/watch?v=D12LiaPyDsc)
 
 </div>
 
